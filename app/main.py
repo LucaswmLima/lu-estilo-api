@@ -1,12 +1,9 @@
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
+from app.db.database import engine, Base
+from app.routes import auth
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("App is starting up...")
-    
-    yield
-    
-    print("App is shutting down...")
+Base.metadata.create_all(bind=engine)
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
+
+app.include_router(auth.router)
