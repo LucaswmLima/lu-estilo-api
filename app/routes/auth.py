@@ -11,8 +11,6 @@ from app.utils.jwt import create_access_token, create_refresh_token, decode_acce
 from app.core.config import SECRET_KEY, ALGORITHM
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-# Para Swagger reconhecer e usar o token automaticamente
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # Sessão com o banco
