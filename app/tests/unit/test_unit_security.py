@@ -6,6 +6,6 @@ def test_hash_password_produces_different_output():
     hashed1 = hash_password(password)
     hashed2 = hash_password(password)
 
-    # Mesmo input, outputs diferentes (por causa do salt)
+    # Mesmo input, outputs diferentes
     assert hashed1 != hashed2
-    assert hashed1.startswith("$2b$")  # padrão do bcrypt
+    assert hashed1.startswith("$2b$")
