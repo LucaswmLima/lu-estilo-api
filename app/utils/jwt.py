@@ -1,6 +1,11 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+from app.core.config import (
+    SECRET_KEY,
+    ALGORITHM,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_DAYS,
+)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -19,6 +24,7 @@ def decode_access_token(token: str):
         return payload
     except JWTError:
         return None
+
 
 def create_refresh_token(data: dict):
     to_encode = data.copy()
