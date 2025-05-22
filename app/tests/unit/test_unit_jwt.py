@@ -20,7 +20,7 @@ def test_create_access_token_with_custom_expiration():
     token = create_access_token(data, expires_delta=expires)
     payload = decode_access_token(token)
 
-    exp_time = datetime.fromtimestamp(payload["exp"], UTC)  # corrigido aqui
+    exp_time = datetime.fromtimestamp(payload["exp"], UTC)
     now = datetime.now(UTC)
     assert now + expires - timedelta(seconds=2) <= exp_time <= now + expires + timedelta(seconds=2)
 
@@ -44,7 +44,7 @@ def test_refresh_token_expiration():
     token = create_refresh_token(data)
     payload = decode_access_token(token)
 
-    exp_time = datetime.fromtimestamp(payload["exp"], UTC)  # corrigido aqui
+    exp_time = datetime.fromtimestamp(payload["exp"], UTC)
     now = datetime.now(UTC)
     expected_exp = now + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     assert now <= exp_time <= expected_exp + timedelta(seconds=2)
