@@ -63,7 +63,7 @@ def login(user: UserCreate, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.delete("/user/delete", status_code=204)
-def delete_user_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def delete_current_user(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     db.delete(current_user)
     db.commit()
     return None
