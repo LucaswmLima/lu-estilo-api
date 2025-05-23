@@ -3,12 +3,19 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.schemas.client import ClientCreate, ClientOut, ClientUpdate
-from app.models import models
-from app.db.database import get_db
-from app.utils.validations import ensure_unique_email, ensure_unique_cpf
+from app.models import Client
+from app.db.database import SessionLocal
+from app.validations.client import ensure_unique_email, ensure_unique_cpf
 
-router = APIRouter(prefix="/clients", tags=["Clients"])
+router = APIRouter(prefix="/clients", tags=["clients"])
 
+# Sessão com o banco
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Listar todos os clientes com filtros e paginação
 @router.get("/", response_model=List[ClientOut])
@@ -19,12 +26,12 @@ def get_clients(
     name: Optional[str] = Query(None),
     email: Optional[str] = Query(None),
 ):
-    query = db.query(models.Client)
+    query = db.query(Client)
 
     if name:
-        query = query.filter(models.Client.name.contains(name))
+        query = query.filter(Client.name.contains(name))
     if email:
-        query = query.filter(models.Client.email.contains(email))
+        query = query.filter(Client.email.contains(email))
 
     return query.offset(skip).limit(limit).all()
 
@@ -35,7 +42,7 @@ def create_client(client: ClientCreate, db: Session = Depends(get_db)):
     ensure_unique_email(db, client.email)
     ensure_unique_cpf(db, client.cpf)
 
-    db_client = models.Client(**client.dict())
+    db_client = Client(**client.dict())
     db.add(db_client)
     db.commit()
     db.refresh(db_client)
@@ -45,7 +52,7 @@ def create_client(client: ClientCreate, db: Session = Depends(get_db)):
 # Buscar um cliente por ID
 @router.get("/{client_id}", response_model=ClientOut)
 def get_client(client_id: int, db: Session = Depends(get_db)):
-    client = db.query(models.Client).get(client_id)
+    client = db.query(Client).get(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return client
@@ -54,7 +61,7 @@ def get_client(client_id: int, db: Session = Depends(get_db)):
 # Atualiza um cliente
 @router.put("/{client_id}", response_model=ClientOut)
 def update_client(client_id: int, update_data: ClientUpdate, db: Session = Depends(get_db)):
-    client = db.query(models.Client).get(client_id)
+    client = db.query(Client).get(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
@@ -75,7 +82,7 @@ def update_client(client_id: int, update_data: ClientUpdate, db: Session = Depen
 # Deleta um cliente
 @router.delete("/{client_id}")
 def delete_client(client_id: int, db: Session = Depends(get_db)):
-    client = db.query(models.Client).get(client_id)
+    client = db.query(Client).get(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
