@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.models.client import Client
+from app.models.client_model import Client
 
 
 # Valida Email

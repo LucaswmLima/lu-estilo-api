@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from app.schemas.client import ClientCreate, ClientOut, ClientUpdate
+from app.schemas.client_schema import ClientCreate, ClientOut, ClientUpdate
 from app.db.database import get_db
-from app.routes.auth import get_current_user, require_admin
+from app.routes.auth_route import get_current_user, require_admin
 from app.services.client_service import (
     get_clients as service_get_clients,
     get_client_by_id,

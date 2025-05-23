@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.db.database import get_db
-from app.schemas.product import ProductCreate, ProductUpdate, ProductOut
+from app.schemas.product_schema import ProductCreate, ProductUpdate, ProductOut
 from app.services.product_service import (
     get_products as service_get_products,
     get_product_by_id,
@@ -10,7 +10,7 @@ from app.services.product_service import (
     update_product as service_update_product,
     delete_product as service_delete_product
 )
-from app.routes.auth import get_current_user, require_admin
+from app.routes.auth_route import get_current_user, require_admin
 
 router = APIRouter(prefix="/products", tags=["products"])
 

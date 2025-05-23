@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.models import Client
-from app.schemas.client import ClientCreate, ClientUpdate
-from app.validations.client import ensure_unique_email, ensure_unique_cpf
+from app.schemas.client_schema import ClientCreate, ClientUpdate
+from app.validations.client_validation import ensure_unique_email, ensure_unique_cpf
 
 # Pesquisa todos os clientes com filtro e paginação
 def get_clients(

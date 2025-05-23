@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-from app.models.user import User
+from app.models.user_model import User
 from app.db.database import get_db
 from app.core.config import SECRET_KEY, ALGORITHM
 from app.core.security import hash_password, verify_password
@@ -44,7 +44,7 @@ def require_admin(user: User = Depends(get_current_user)):
 
 
 def create_user(db: Session, email: str, password: str) -> User:
-    from app.validations.auth import (
+    from app.validations.auth_validation import (
         ensure_email_not_registered,
     )  # import aqui para evitar import circular
 

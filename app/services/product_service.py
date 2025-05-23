@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.models import Product
-from app.schemas.product import ProductCreate, ProductUpdate
+from app.schemas.product_schema import ProductCreate, ProductUpdate
 
 def get_products(
     db: Session,
