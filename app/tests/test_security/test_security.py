@@ -1,5 +1,6 @@
 from app.core.security import hash_password, verify_password
 
+
 # Testes de hash e verificação de senha
 class TestPasswordSecurity:
 
@@ -18,5 +19,5 @@ class TestPasswordSecurity:
         password = "minha_senha_segura"
         hashed_password = hash_password(password)
 
-        assert verify_password(password, hashed_password) # senha correta
-        assert not verify_password("senha_errada", hashed_password) # senha incorreta
+        assert verify_password(password, hashed_password)  # senha correta
+        assert not verify_password("senha_errada", hashed_password)  # senha incorreta

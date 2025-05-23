@@ -9,6 +9,7 @@ from app.routes.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
+
 # Listar todos os clientes (qualquer usuário logado pode)
 @router.get("/", response_model=List[ClientOut])
 def get_clients(
@@ -39,6 +40,7 @@ def create_client(
     db.commit()
     db.refresh(db_client)
     return db_client
+
 
 # Buscar cliente por ID (qualquer logado)
 @router.get("/{client_id}", response_model=ClientOut)

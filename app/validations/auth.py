@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 
+
 def ensure_email_not_registered(db, email: str):
     from app.models.user import User
 

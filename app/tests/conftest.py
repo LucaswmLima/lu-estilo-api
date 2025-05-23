@@ -22,6 +22,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def override_get_db():
     db = TestingSessionLocal()
     try:
@@ -29,7 +30,9 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
+
 
 @pytest.fixture(scope="session", autouse=True)
 def prepare_database():
@@ -40,29 +43,33 @@ def prepare_database():
         email="admin@test.com",
         hashed_password=hash_password("admin123"),
         is_admin=1,
-        is_active=1
+        is_active=1,
     )
     regular_user = User(
         email="user@test.com",
         hashed_password=hash_password("user123"),
         is_admin=0,
-        is_active=1
+        is_active=1,
     )
     db.add_all([admin_user, regular_user])
     db.commit()
     db.close()
 
+
 @pytest.fixture()
 def client():
     return TestClient(app)
+
 
 @pytest.fixture()
 def token_admin():
     return create_access_token({"sub": "admin@test.com", "is_admin": True})
 
+
 @pytest.fixture()
 def token_user():
     return create_access_token({"sub": "user@test.com", "is_admin": False})
+
 
 @pytest.fixture()
 def create_test_client():

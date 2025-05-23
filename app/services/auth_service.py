@@ -11,6 +11,7 @@ from app.utils.jwt import create_access_token, create_refresh_token, decode_acce
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
@@ -32,6 +33,7 @@ def get_current_user(
         raise credentials_exception
     return user
 
+
 def require_admin(user: User = Depends(get_current_user)):
     if user.is_admin != 1:
         raise HTTPException(
@@ -40,8 +42,12 @@ def require_admin(user: User = Depends(get_current_user)):
         )
     return user
 
+
 def create_user(db: Session, email: str, password: str) -> User:
-    from app.validations.auth import ensure_email_not_registered  # import aqui para evitar import circular
+    from app.validations.auth import (
+        ensure_email_not_registered,
+    )  # import aqui para evitar import circular
+
     ensure_email_not_registered(db, email)
     hashed_pw = hash_password(password)
     new_user = User(email=email, hashed_password=hashed_pw)
@@ -49,6 +55,7 @@ def create_user(db: Session, email: str, password: str) -> User:
     db.commit()
     db.refresh(new_user)
     return new_user
+
 
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
     user = db.query(User).filter(User.email == email).first()
@@ -58,10 +65,12 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
         return None
     return user
 
+
 def generate_tokens(email: str):
     access_token = create_access_token(data={"sub": email})
     refresh_token = create_refresh_token(data={"sub": email})
     return access_token, refresh_token
+
 
 def refresh_tokens(refresh_token: str):
     payload = decode_access_token(refresh_token)
