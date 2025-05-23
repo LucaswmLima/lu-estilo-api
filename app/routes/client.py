@@ -27,7 +27,6 @@ def get_clients(
     return query.offset(skip).limit(limit).all()
 
 
-# Criar novo cliente (apenas admin)
 @router.post("/", response_model=ClientOut)
 def create_client(
     client: ClientCreate, db: Session = Depends(get_db), user=Depends(require_admin)
@@ -35,19 +34,18 @@ def create_client(
     ensure_unique_email(db, client.email)
     ensure_unique_cpf(db, client.cpf)
 
-    db_client = Client(**client.dict())
+    db_client = Client(**client.model_dump())
     db.add(db_client)
     db.commit()
     db.refresh(db_client)
     return db_client
-
 
 # Buscar cliente por ID (qualquer logado)
 @router.get("/{client_id}", response_model=ClientOut)
 def get_client(
     client_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
-    client = db.query(Client).get(client_id)
+    client = db.get(Client, client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return client
@@ -61,7 +59,7 @@ def update_client(
     db: Session = Depends(get_db),
     user=Depends(require_admin),
 ):
-    client = db.query(Client).get(client_id)
+    client = db.get(Client, client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
@@ -70,7 +68,7 @@ def update_client(
     if update_data.cpf and update_data.cpf != client.cpf:
         ensure_unique_cpf(db, update_data.cpf)
 
-    for field, value in update_data.dict(exclude_unset=True).items():
+    for field, value in update_data.model_dump(exclude_unset=True).items():
         setattr(client, field, value)
 
     db.commit()
@@ -83,7 +81,7 @@ def update_client(
 def delete_client(
     client_id: int, db: Session = Depends(get_db), user=Depends(require_admin)
 ):
-    client = db.query(Client).get(client_id)
+    client = db.get(Client, client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
