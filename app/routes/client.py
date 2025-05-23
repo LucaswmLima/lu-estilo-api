@@ -9,12 +9,14 @@ from app.routes.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 # Listar todos os clientes (qualquer usuário logado pode)
 @router.get("/", response_model=List[ClientOut])
@@ -33,12 +35,11 @@ def get_clients(
         query = query.filter(Client.email.contains(email))
     return query.offset(skip).limit(limit).all()
 
+
 # Criar novo cliente (apenas admin)
 @router.post("/", response_model=ClientOut)
 def create_client(
-    client: ClientCreate,
-    db: Session = Depends(get_db),
-    user=Depends(require_admin)
+    client: ClientCreate, db: Session = Depends(get_db), user=Depends(require_admin)
 ):
     ensure_unique_email(db, client.email)
     ensure_unique_cpf(db, client.cpf)
@@ -49,17 +50,17 @@ def create_client(
     db.refresh(db_client)
     return db_client
 
+
 # Buscar cliente por ID (qualquer logado)
 @router.get("/{client_id}", response_model=ClientOut)
 def get_client(
-    client_id: int,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    client_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     client = db.query(Client).get(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return client
+
 
 # Atualizar cliente (apenas admin)
 @router.put("/{client_id}", response_model=ClientOut)
@@ -67,7 +68,7 @@ def update_client(
     client_id: int,
     update_data: ClientUpdate,
     db: Session = Depends(get_db),
-    user=Depends(require_admin)
+    user=Depends(require_admin),
 ):
     client = db.query(Client).get(client_id)
     if not client:
@@ -85,12 +86,11 @@ def update_client(
     db.refresh(client)
     return client
 
+
 # Deletar cliente (apenas admin)
 @router.delete("/{client_id}")
 def delete_client(
-    client_id: int,
-    db: Session = Depends(get_db),
-    user=Depends(require_admin)
+    client_id: int, db: Session = Depends(get_db), user=Depends(require_admin)
 ):
     client = db.query(Client).get(client_id)
     if not client:

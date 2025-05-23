@@ -45,14 +45,16 @@ def get_current_user(
         raise credentials_exception
     return user
 
+
 # Requisita Admin
-def require_admin(user = Depends(get_current_user)):
+def require_admin(user=Depends(get_current_user)):
     if user.is_admin != 1:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso restrito a administradores"
+            detail="Acesso restrito a administradores",
         )
     return user
+
 
 # Registrar novo usuário
 @router.post("/register", response_model=UserOut)

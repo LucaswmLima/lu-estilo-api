@@ -34,9 +34,7 @@ async def test_user_register_login_refresh_and_delete():
 
         # 3. Faz refresh do token
         # Envia o refresh token diretamente (string) no corpo da requisição
-        refresh_response = await ac.post(
-            "/auth/refresh", json=refresh_token
-        )
+        refresh_response = await ac.post("/auth/refresh", json=refresh_token)
         assert refresh_response.status_code == 200
         refreshed_tokens = refresh_response.json()
         assert "access_token" in refreshed_tokens
