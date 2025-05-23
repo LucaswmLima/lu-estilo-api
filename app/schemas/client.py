@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, ConfigDict, constr
 from typing import Optional
 
 # Define o tipo CPF com restrições de tamanho (11 dígitos)
@@ -24,5 +24,4 @@ class ClientUpdate(BaseModel):
 class ClientOut(ClientBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
