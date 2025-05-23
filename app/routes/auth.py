@@ -23,7 +23,7 @@ def get_db():
         db.close()
 
 
-# Usuário atual, extraído do token
+# Pega o usuário atual, extraído do token
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
