@@ -3,7 +3,7 @@ from app.core.security import hash_password, verify_password
 # Testes de hash e verificação de senha
 class TestPasswordSecurity:
 
-    # Verifica se dois hashes da mesma senha são diferentes (por conta do salt)
+    # Verifica se dois hashes da mesma senha são diferentes
     def test_hash_password_produces_unique_hashes(self):
         password = "senha123"
         hashed1 = hash_password(password)
