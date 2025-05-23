@@ -3,20 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.schemas.client import ClientCreate, ClientOut, ClientUpdate
 from app.models import Client
-from app.db.database import SessionLocal
+from app.db.database import get_db
 from app.validations.client import ensure_unique_email, ensure_unique_cpf
 from app.routes.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/clients", tags=["clients"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 # Listar todos os clientes (qualquer usuário logado pode)
 @router.get("/", response_model=List[ClientOut])

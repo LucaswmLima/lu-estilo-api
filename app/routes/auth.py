@@ -5,23 +5,13 @@ from jose import JWTError, jwt
 
 from app.schemas.auth import UserCreate, UserOut, Token
 from app.models.user import User
-from app.db.database import SessionLocal
+from app.db.database import get_db
 from app.core.security import hash_password, verify_password
 from app.utils.jwt import create_access_token, create_refresh_token, decode_access_token
 from app.core.config import SECRET_KEY, ALGORITHM
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
-
-# Sessão com o banco
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 # Pega o usuário atual, extraído do token
 def get_current_user(
