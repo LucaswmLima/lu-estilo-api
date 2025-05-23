@@ -20,7 +20,7 @@ class TestAuth:
         # Segundo registro
         response = client.post("/auth/register", json={"email": email, "password": CLIENT_PASSWORD})
         assert response.status_code == 400
-        assert response.json()["detail"] == "Email already registered"
+        assert response.json()["detail"] == "Email já registrado"
 
     # Login com credenciais corretas
     def test_login_success_allowed(self, client):
