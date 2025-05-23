@@ -1,4 +1,3 @@
-# test_clients.py
 import pytest
 
 CLIENT_SAMPLE = {

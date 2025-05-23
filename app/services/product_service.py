@@ -30,12 +30,21 @@ def get_products(
 def get_product_by_id(db: Session, product_id: int) -> Optional[Product]:
     return db.get(Product, product_id)
 
-def create_product(db: Session, data: ProductCreate) -> Product:
-    product = Product(**data.model_dump())
-    db.add(product)
-    db.commit()
-    db.refresh(product)
-    return product
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
+
+def create_product(db: Session, product: ProductCreate):
+    db_product = Product(**product.dict())
+    db.add(db_product)
+    try:
+        db.commit()
+        db.refresh(db_product)
+        return db_product
+    except IntegrityError as e:
+        db.rollback()
+        if 'products_barcode_key' in str(e.orig):
+            raise HTTPException(status_code=409, detail="Código de barras já cadastrado.")
+        raise
 
 def update_product(db: Session, product_id: int, data: ProductUpdate) -> Optional[Product]:
     product = db.get(Product, product_id)

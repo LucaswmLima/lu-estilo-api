@@ -9,6 +9,7 @@ from app.main import app
 from app.db.database import Base, get_db
 from app.models import User, Client
 from app.core.security import hash_password
+from app.models.product_model import Product
 from app.utils.jwt import create_access_token
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -85,3 +86,19 @@ def create_test_client():
     db.refresh(client)
     db.close()
     return client
+
+@pytest.fixture()
+def create_test_product():
+    db = TestingSessionLocal()
+    product = Product(
+        description="Produto Teste",
+        price=49.99,
+        barcode=str(uuid.uuid4().int)[:13],
+        section="Roupas",
+        stock=10,
+    )
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    db.close()
+    return product
