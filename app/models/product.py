@@ -11,4 +11,3 @@ class Product(Base):
     section = Column(String, nullable=False)
     stock = Column(Integer, default=0)
     expiration_date = Column(Date, nullable=True)
-    available = Column(Boolean, default=True)
