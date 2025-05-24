@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Date, Boolean
+# app/models/product.py
+from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 class Product(Base):
@@ -11,3 +13,4 @@ class Product(Base):
     section = Column(String, nullable=False)
     stock = Column(Integer, default=0)
     expiration_date = Column(Date, nullable=True)
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete")
