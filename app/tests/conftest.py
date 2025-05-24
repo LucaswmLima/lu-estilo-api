@@ -102,3 +102,15 @@ def create_test_product():
     db.refresh(product)
     db.close()
     return product
+
+@pytest.fixture
+def create_second_client(client, token_admin):
+    headers = {"Authorization": f"Bearer {token_admin}"}
+    payload = {
+        "name": "Second Client",
+        "email": f"{uuid.uuid4().hex[:6]}@example.com",
+        "cpf": str(uuid.uuid4().int)[:11],
+    }
+    response = client.post("/clients/", json=payload, headers=headers)
+    assert response.status_code == 200
+    return response.json()
