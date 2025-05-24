@@ -1,13 +1,10 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 
 from app.models import Product
 from app.schemas.product_schema import ProductCreate, ProductUpdate
-#from app.validations. import ensure_product_not_in_orders
-from app.validations.product_validation import ensure_unique_barcode
-
+from app.validations.product_validation import validate_unique_barcode, validate_expiration_date
 
 
 def get_products(
@@ -40,7 +37,9 @@ def get_product_by_id(db: Session, product_id: int) -> Optional[Product]:
 
 
 def create_product(db: Session, product: ProductCreate):
-    ensure_unique_barcode(db, product.barcode)
+    validate_unique_barcode(db, product.barcode)
+    validate_expiration_date(product.expiration_date)
+
     db_product = Product(**product.model_dump())
     db.add(db_product)
     db.commit()
@@ -55,8 +54,8 @@ def update_product(db: Session, product_id: int, data: ProductUpdate) -> Optiona
 
     updated_data = data.model_dump(exclude_unset=True)
 
-    #if "price" in updated_data or "name" in updated_data or "stock" in updated_data:
-        #ensure_product_not_in_orders(db, product_id)
+    validate_unique_barcode(db, updated_data.get("barcode"), product_id)
+    validate_expiration_date(updated_data.get("expiration_date"))
 
     for field, value in updated_data.items():
         setattr(product, field, value)
@@ -66,12 +65,11 @@ def update_product(db: Session, product_id: int, data: ProductUpdate) -> Optiona
     return product
 
 
+
 def delete_product(db: Session, product_id: int) -> bool:
     product = db.get(Product, product_id)
     if not product:
         return False
-
-    #ensure_product_not_in_orders(db, product_id)
 
     db.delete(product)
     db.commit()

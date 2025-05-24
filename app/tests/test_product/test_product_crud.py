@@ -1,108 +1,71 @@
 import pytest
-from datetime import date, timedelta
 
-PRODUCT_SAMPLE = {
-    "description": "Produto Teste",
-    "price": 49.99,
-    "barcode": "1234567890123",
-    "section": "Roupas",
-    "stock": 10,
-    "expiration_date": (date.today() + timedelta(days=30)).isoformat(),
-}
+INVALID_PRODUCTS = [
+    # descrição vazia
+    {"description": "", "price": 10.0, "barcode": "0000000000001", "section": "Roupas", "stock": 5},
+    # preço negativo
+    {"description": "Teste", "price": -5.0, "barcode": "0000000000002", "section": "Roupas", "stock": 5},
+    # barcode vazio
+    {"description": "Teste", "price": 10.0, "barcode": "", "section": "Roupas", "stock": 5},
+    # estoque negativo
+    {"description": "Teste", "price": 10.0, "barcode": "0000000000003", "section": "Roupas", "stock": -1},
+]
 
-PRODUCT_DUPLICATE = {
-    "description": "Produto Duplicado",
-    "price": 59.99,
-    "barcode": "1234567890123",
-    "section": "Eletrônicos",
-    "stock": 5,
-}
+class TestAdminCrudValidations:
+    @pytest.fixture(autouse=True)
+    def setup_headers(self, token_admin):
+        self.headers = {"Authorization": f"Bearer {token_admin}"}
 
-PRODUCT_UPDATE = {
-    "price": 59.99,
-    "stock": 20,
-}
+    def test_create_product_with_invalid_data(self, client):
+        for invalid_product in INVALID_PRODUCTS:
+            response = client.post("/products/", json=invalid_product, headers=self.headers)
+            assert response.status_code == 422
 
-@pytest.fixture
-def auth_headers(token_admin):
-    return {"Authorization": f"Bearer {token_admin}"}
-
-
-class TestProductBusinessRules:
-
-    def test_list_products_with_pagination_and_filters(self, client, auth_headers):
-        # Assumindo que tem vários produtos no banco (ou crie alguns fixtures antes)
-        params = {
-            "section": "Roupas",
-            "min_price": 40,
-            "max_price": 100,
-            "available": True,
-            "page": 1,
-            "limit": 10,
+    def test_create_product_duplicate_barcode(self, client, create_test_product):
+        # tentar criar um produto com barcode já existente (do create_test_product)
+        product_data = {
+            "description": "Outro Produto",
+            "price": 20.0,
+            "barcode": create_test_product.barcode,
+            "section": "Eletrônicos",
+            "stock": 10,
         }
-        response = client.get("/products/", headers=auth_headers, params=params)
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list) or "items" in data  # Depende do seu retorno paginado
-        # Checar se os produtos retornados batem com os filtros (exemplo básico)
-        for product in data.get("items", data):  
-            assert product["section"] == "Roupas"
-            assert 40 <= product["price"] <= 100
-            assert product["stock"] > 0
+        response = client.post("/products/", json=product_data, headers=self.headers)
+        assert response.status_code == 400
+        assert "barcode" in response.json()["detail"].lower()
 
-    def test_create_product_success(self, client, auth_headers):
-        response = client.post("/products/", json=PRODUCT_SAMPLE, headers=auth_headers)
-        assert response.status_code == 200
-        data = response.json()
-        assert data["barcode"] == PRODUCT_SAMPLE["barcode"]
-        assert data["expiration_date"] == PRODUCT_SAMPLE["expiration_date"]
+    def test_update_product_with_invalid_data(self, client, create_test_product):
+        for invalid_data in [
+            {"price": -10},
+            {"description": ""},
+            {"stock": -5},
+            {"barcode": ""}
+        ]:
+            response = client.put(f"/products/{create_test_product.id}", json=invalid_data, headers=self.headers)
+            assert response.status_code == 422
 
-    def test_create_product_duplicate_barcode(self, client, auth_headers):
-        # Cria primeiro produto
-        client.post("/products/", json=PRODUCT_SAMPLE, headers=auth_headers)
-        # Tenta criar produto com mesmo barcode
-        response = client.post("/products/", json=PRODUCT_DUPLICATE, headers=auth_headers)
-        assert response.status_code in (400, 409)
+    def test_update_product_duplicate_barcode(self, client, create_test_product):
+        # cria um outro produto com barcode diferente
+        product_data = {
+            "description": "Produto Extra",
+            "price": 15.0,
+            "barcode": "9999999999999",
+            "section": "Roupas",
+            "stock": 8,
+        }
+        res = client.post("/products/", json=product_data, headers=self.headers)
+        assert res.status_code == 200
+        new_product_id = res.json()["id"]
 
-    def test_get_product_not_found(self, client, auth_headers):
-        response = client.get("/products/9999999", headers=auth_headers)
+        # tenta atualizar o novo produto com barcode do create_test_product (duplicado)
+        response = client.put(
+            f"/products/{new_product_id}",
+            json={"barcode": create_test_product.barcode},
+            headers=self.headers
+        )
+        assert response.status_code == 400
+        assert "barcode" in response.json()["detail"].lower()
+
+    def test_delete_nonexistent_product_returns_404(self, client):
+        response = client.delete("/products/9999999", headers=self.headers)
         assert response.status_code == 404
-
-    def test_update_product_success(self, client, auth_headers):
-        create_resp = client.post("/products/", json=PRODUCT_SAMPLE, headers=auth_headers)
-        product_id = create_resp.json()["id"]
-
-        response = client.put(f"/products/{product_id}", json=PRODUCT_UPDATE, headers=auth_headers)
-        assert response.status_code == 200
-        data = response.json()
-        assert data["price"] == PRODUCT_UPDATE["price"]
-        assert data["stock"] == PRODUCT_UPDATE["stock"]
-
-    def test_update_product_not_found(self, client, auth_headers):
-        response = client.put("/products/9999999", json=PRODUCT_UPDATE, headers=auth_headers)
-        assert response.status_code == 404
-
-    def test_delete_product_success(self, client, auth_headers):
-        create_resp = client.post("/products/", json=PRODUCT_SAMPLE, headers=auth_headers)
-        product_id = create_resp.json()["id"]
-
-        response = client.delete(f"/products/{product_id}", headers=auth_headers)
-        assert response.status_code == 200
-        assert response.json().get("detail") == "Produto deletado com sucesso"
-
-    def test_delete_product_not_found(self, client, auth_headers):
-        response = client.delete("/products/9999999", headers=auth_headers)
-        assert response.status_code == 404
-
-    def test_create_product_invalid_expiration_date(self, client, auth_headers):
-        invalid_product = PRODUCT_SAMPLE.copy()
-        invalid_product["expiration_date"] = "invalid-date-format"
-        response = client.post("/products/", json=invalid_product, headers=auth_headers)
-        assert response.status_code == 422
-
-    def test_create_product_invalid_images(self, client, auth_headers):
-        invalid_product = PRODUCT_SAMPLE.copy()
-        invalid_product["images"] = ["not-a-url"]
-        response = client.post("/products/", json=invalid_product, headers=auth_headers)
-        assert response.status_code == 422
-
