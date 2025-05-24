@@ -14,12 +14,12 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(BaseModel):
-    description: Optional[str]
-    price: Optional[float]
-    barcode: Optional[str]
-    section: Optional[str]
-    stock: Optional[int]
-    expiration_date: Optional[date]
+    description: Optional[str] = None
+    price: Optional[float] = None
+    barcode: Optional[str] = None
+    section: Optional[str] = None
+    stock: Optional[int] = None
+    expiration_date: Optional[date] = None
 
 class ProductOut(ProductBase):
     id: int

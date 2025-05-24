@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.db.database import get_db
@@ -49,11 +49,11 @@ def get_product(
 @router.put("/{product_id}", response_model=ProductOut)
 def update_product(
     product_id: int,
-    data: ProductUpdate,
+    update_data: ProductUpdate,
     db: Session = Depends(get_db),
     user=Depends(require_admin),
 ):
-    product = service_update_product(db, product_id, data)
+    product = service_update_product(db, product_id, update_data)
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return product

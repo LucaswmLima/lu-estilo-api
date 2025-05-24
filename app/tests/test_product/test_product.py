@@ -64,6 +64,8 @@ class TestUserToken:
             json={"price": 59.99},
             headers=self.headers
         )
+        print("Status Code:", response.status_code)
+        print("Response JSON:", response.json())
         assert response.status_code == 403
 
     def test_delete_product_user_forbidden(self, client, create_test_product):
