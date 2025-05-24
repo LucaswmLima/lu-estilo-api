@@ -28,7 +28,7 @@ class TestAuth:
             "/auth/register", json={"email": email, "password": CLIENT_PASSWORD}
         )
         assert response.status_code == 400
-        assert response.json()["detail"] == "Email já registrado"
+        assert response.json()["detail"] == "Email is already in use"
 
     # Login com credenciais corretas
     def test_login_success_allowed(self, client):

@@ -8,5 +8,5 @@ def ensure_email_not_registered(db, email: str):
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email já registrado",
+            detail="Email is already in use",
         )
