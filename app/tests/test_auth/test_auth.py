@@ -95,12 +95,12 @@ class TestAuth:
 
         # Deleta o usuario
         response = client.delete(
-            "/auth/user/delete", headers={"Authorization": f"Bearer {access_token}"}
+            "/auth/delete", headers={"Authorization": f"Bearer {access_token}"}
         )
         assert response.status_code == 204
 
     # Deleta o usuario não autenticado
     def test_delete_user_unauthenticated(self, client):
-        response = client.delete("/auth/user/delete")
+        response = client.delete("/auth/delete")
         assert response.status_code == 401
         assert response.json()["detail"] == "Not authenticated"

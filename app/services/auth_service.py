@@ -8,6 +8,7 @@ from app.db.database import get_db
 from app.core.config import SECRET_KEY, ALGORITHM
 from app.core.security import hash_password, verify_password
 from app.utils.jwt import create_access_token, create_refresh_token, decode_access_token
+from app.validations.auth_validation import validate_email_not_registered
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -44,11 +45,9 @@ def require_admin(user: User = Depends(get_current_user)):
 
 
 def create_user(db: Session, email: str, password: str) -> User:
-    from app.validations.auth_validation import (
-        ensure_email_not_registered,
-    )  # import aqui para evitar import circular
+   
 
-    ensure_email_not_registered(db, email)
+    validate_email_not_registered(db, email)
     hashed_pw = hash_password(password)
     new_user = User(email=email, hashed_password=hashed_pw)
     db.add(new_user)

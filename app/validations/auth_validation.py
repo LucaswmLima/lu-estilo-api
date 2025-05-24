@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
 
-def ensure_email_not_registered(db, email: str):
+def validate_email_not_registered(db, email: str):
     from app.models.user_model import User
 
     user = db.query(User).filter(User.email == email).first()
