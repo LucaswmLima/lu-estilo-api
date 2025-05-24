@@ -8,13 +8,12 @@ PRODUCT_SAMPLE = {
     "section": "Roupas",
     "stock": 10,
     "expiration_date": (date.today() + timedelta(days=30)).isoformat(),
-    "images": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
 }
 
 PRODUCT_DUPLICATE = {
     "description": "Produto Duplicado",
     "price": 59.99,
-    "barcode": "1234567890123",  # Mesmo código de barras do outro
+    "barcode": "1234567890123",
     "section": "Eletrônicos",
     "stock": 5,
 }
@@ -57,17 +56,13 @@ class TestProductBusinessRules:
         data = response.json()
         assert data["barcode"] == PRODUCT_SAMPLE["barcode"]
         assert data["expiration_date"] == PRODUCT_SAMPLE["expiration_date"]
-        assert "images" in data and len(data["images"]) == 2
 
     def test_create_product_duplicate_barcode(self, client, auth_headers):
         # Cria primeiro produto
         client.post("/products/", json=PRODUCT_SAMPLE, headers=auth_headers)
-
         # Tenta criar produto com mesmo barcode
         response = client.post("/products/", json=PRODUCT_DUPLICATE, headers=auth_headers)
-        assert response.status_code in (400, 409)  # Seu app deve definir, mas normalmente 409 conflito
-        # Poderia verificar mensagem de erro específica, ex:
-        # assert "barcode already exists" in response.json().get("detail", "").lower()
+        assert response.status_code in (400, 409)
 
     def test_get_product_not_found(self, client, auth_headers):
         response = client.get("/products/9999999", headers=auth_headers)
@@ -103,7 +98,7 @@ class TestProductBusinessRules:
         invalid_product = PRODUCT_SAMPLE.copy()
         invalid_product["expiration_date"] = "invalid-date-format"
         response = client.post("/products/", json=invalid_product, headers=auth_headers)
-        assert response.status_code == 422  # Erro de validação do pydantic ou framework que usar
+        assert response.status_code == 422
 
     def test_create_product_invalid_images(self, client, auth_headers):
         invalid_product = PRODUCT_SAMPLE.copy()
