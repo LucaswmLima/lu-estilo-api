@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 
 class ProductBase(BaseModel):
@@ -11,7 +11,7 @@ class ProductBase(BaseModel):
     expiration_date: Optional[date] = None
 
 class ProductCreate(ProductBase):
-    pass
+    images: Optional[List[str]] = Field(default_factory=list, description="Lista de caminhos das imagens")
 
 class ProductUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=1)
@@ -20,8 +20,10 @@ class ProductUpdate(BaseModel):
     section: Optional[str] = Field(None, min_length=1)
     stock: Optional[int] = Field(None, ge=0)
     expiration_date: Optional[date] = None
+    images: Optional[List[str]] = Field(default=None, description="Lista de caminhos das imagens")
 
 class ProductOut(ProductBase):
     id: int
+    images: List[str] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
