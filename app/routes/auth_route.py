@@ -39,7 +39,7 @@ def login(
     }
 
 
-@router.delete("/user/delete", status_code=204)
+@router.delete("/delete", status_code=204)
 def delete_current_user(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
