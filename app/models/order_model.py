@@ -13,7 +13,12 @@ class Order(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     client = relationship("Client", back_populates="orders")
-    products = relationship("OrderProduct", back_populates="order")
+    products = relationship(
+        "OrderProduct",
+        back_populates="order",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
     user = relationship("User")
 
 class OrderProduct(Base):

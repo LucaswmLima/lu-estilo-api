@@ -4,79 +4,141 @@ from typing import List
 from app.models.order_model import Order, OrderProduct
 from app.schemas.order_schema import OrderCreate, OrderUpdate
 from app.models.product_model import Product
+from app.validations.order_validation import adjust_stock, validate_stock
+
+
+def get_order(db: Session, order_id: int, user_id: int, is_admin: bool):
+    # Busca o pedido pelo ID
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        # Retorna erro 404 caso o pedido não exista
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # Se não for admin, só permite acessar se for dono do pedido
+    if not is_admin and order.created_by != user_id:
+        # Retorna erro 403 se tentar acessar pedido de outro usuário
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    return order
+
+
+def list_orders(db: Session, user_id: int, is_admin: bool):
+    # Se for admin, retorna todos os pedidos
+    if is_admin:
+        return db.query(Order).all()
+    else:
+        # Usuários comuns só podem ver os próprios pedidos
+        return db.query(Order).filter(Order.created_by == user_id).all()
+
 
 def create_order(db: Session, order_in: OrderCreate, user_id: int):
-    # Validar estoque dos produtos
-    for item in order_in.products:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
-        if not product:
-            raise HTTPException(status_code=404, detail=f"Produto {item.product_id} não encontrado")
-        if product.stock < item.quantity:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Estoque insuficiente para produto {product.description}",
-            )
+    # Valida se há estoque suficiente para todos os produtos
+    validate_stock(db, order_in.products)
 
-    # Criar pedido
+    # Cria o pedido no banco
     db_order = Order(client_id=order_in.client_id, status=order_in.status, created_by=user_id)
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
 
-    # Criar os relacionamentos order_products e atualizar estoque
+    # Para cada produto, cria um registro e ajusta o estoque
     for item in order_in.products:
         order_product = OrderProduct(order_id=db_order.id, product_id=item.product_id, quantity=item.quantity)
         db.add(order_product)
-
-        # Atualiza estoque
-        product = db.query(Product).filter(Product.id == item.product_id).first()
-        product.stock -= item.quantity
-        db.add(product)
+        adjust_stock(db, item.product_id, -item.quantity)
 
     db.commit()
     db.refresh(db_order)
     return db_order
 
-def get_order(db: Session, order_id: int, user_id: int, is_admin: bool):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Pedido não encontrado")
-
-    # Se não for admin, só permite ver se for dono
-    if not is_admin and order.created_by != user_id:
-        raise HTTPException(status_code=403, detail="Acesso negado")
-    return order
-
-def list_orders(db: Session, user_id: int, is_admin: bool):
-    if is_admin:
-        return db.query(Order).all()
-    else:
-        return db.query(Order).filter(Order.created_by == user_id).all()
 
 def update_order(db: Session, order_id: int, order_update: OrderUpdate, user_id: int, is_admin: bool):
+    # Busca o pedido para atualizar
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
-        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+        raise HTTPException(status_code=404, detail="Order not found")
 
+    # Permite atualização apenas se for admin ou dono do pedido
     if not is_admin and order.created_by != user_id:
-        raise HTTPException(status_code=403, detail="Acesso negado")
+        raise HTTPException(status_code=403, detail="Access denied")
 
+    # Atualiza status e cliente, se enviados
     if order_update.status is not None:
         order.status = order_update.status
+    if order_update.client_id is not None:
+        order.client_id = order_update.client_id
 
-    db.add(order)
+    # Mapeia os produtos atuais do pedido para facilitar atualização
+    current_products = {p.id: p for p in order.products}
+    updated_products = order_update.products or []
+
+    # IDs dos produtos atualizados e atuais
+    updated_ids = {p.id for p in updated_products if p.id is not None}
+    current_ids = set(current_products.keys())
+
+    # Produtos que foram removidos (estavam antes, não estão mais)
+    removed_products = [current_products[p_id] for p_id in current_ids - updated_ids]
+
+    # Coleta IDs de produtos para validação e consulta
+    product_ids = set()
+    product_ids.update([p.product_id for p in removed_products])
+    product_ids.update([p.product_id for p in updated_products])
+    products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+    product_map = {p.id: p for p in products}
+
+    # 1) Repor estoque dos produtos removidos
+    for removed in removed_products:
+        adjust_stock(db, removed.product_id, removed.quantity)
+        db.delete(removed)
+
+    # 2) Atualizar quantidades ou adicionar novos produtos
+    for p_data in updated_products:
+        if p_data.id in current_products:
+            order_prod = current_products[p_data.id]
+            product = product_map.get(order_prod.product_id)
+
+            diff = p_data.quantity - order_prod.quantity
+
+            # Se aumento da quantidade, verificar estoque disponível
+            if diff > 0 and product.stock < diff:
+                raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.description}")
+
+            # Ajusta o estoque conforme a diferença e atualiza a quantidade
+            adjust_stock(db, order_prod.product_id, -diff)
+            order_prod.quantity = p_data.quantity
+            db.add(order_prod)
+        else:
+            # Produto novo no pedido: verifica estoque e adiciona
+            product = product_map.get(p_data.product_id)
+            if not product:
+                raise HTTPException(status_code=404, detail=f"Product {p_data.product_id} not found")
+            if product.stock < p_data.quantity:
+                raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.description}")
+
+            new_order_product = OrderProduct(order_id=order.id, product_id=p_data.product_id, quantity=p_data.quantity)
+            db.add(new_order_product)
+            adjust_stock(db, p_data.product_id, -p_data.quantity)
+
     db.commit()
     db.refresh(order)
     return order
 
+
 def delete_order(db: Session, order_id: int, user_id: int, is_admin: bool):
+    # Busca o pedido para exclusão
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
-        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+        raise HTTPException(status_code=404, detail="Order not found")
 
+    # Verifica se é admin para poder deletar
     if not is_admin and order.created_by != user_id:
-        raise HTTPException(status_code=403, detail="Acesso negado")
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    # Repoe o estoque dos produtos antes de apagar o pedido
+    for order_product in order.products:
+        adjust_stock(db, order_product.product_id, order_product.quantity)
 
     db.delete(order)
     db.commit()
-    return {"detail": "Pedido deletado com sucesso"}
+
+    return {"detail": "Order successfully deleted"}

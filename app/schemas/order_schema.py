@@ -9,6 +9,9 @@ class OrderProductBase(BaseModel):
 class OrderProductCreate(OrderProductBase):
     pass
 
+class OrderProductUpdate(OrderProductBase):
+    id: int
+
 class OrderProductOut(OrderProductBase):
     id: int
     product: ProductOut
@@ -23,7 +26,9 @@ class OrderCreate(OrderBase):
     products: List[OrderProductCreate]
 
 class OrderUpdate(BaseModel):
+    client_id: Optional[int] = None
     status: Optional[str] = None
+    products: Optional[List[OrderProductUpdate]] = None
 
 class OrderOut(OrderBase):
     id: int
