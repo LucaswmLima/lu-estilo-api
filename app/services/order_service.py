@@ -8,6 +8,7 @@ from app.models.product_model import Product
 from app.utils.send_sms import send_whatsapp_message
 from app.validations.order_validation import adjust_stock, validate_stock
 
+
 def get_order(db: Session, order_id: int, user_id: int, is_admin: bool):
     # Busca pedido pelo ID
     order = db.query(Order).filter(Order.id == order_id).first()
@@ -19,6 +20,7 @@ def get_order(db: Session, order_id: int, user_id: int, is_admin: bool):
         raise HTTPException(status_code=403, detail="Access denied")
     return order
 
+
 def list_orders(db: Session, user_id: int, is_admin: bool):
     # Lista todos pedidos para admin, ou só os do usuário comum
     if is_admin:
@@ -26,19 +28,24 @@ def list_orders(db: Session, user_id: int, is_admin: bool):
     else:
         return db.query(Order).filter(Order.created_by == user_id).all()
 
+
 def create_order(db: Session, order_in: OrderCreate, user_id: int):
     # Valida se há estoque suficiente para todos os produtos
     validate_stock(db, order_in.products)
 
     # Cria pedido e adiciona ao DB
-    db_order = Order(client_id=order_in.client_id, status=order_in.status, created_by=user_id)
+    db_order = Order(
+        client_id=order_in.client_id, status=order_in.status, created_by=user_id
+    )
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
 
     # Adiciona produtos ao pedido e atualiza estoque
     for item in order_in.products:
-        order_product = OrderProduct(order_id=db_order.id, product_id=item.product_id, quantity=item.quantity)
+        order_product = OrderProduct(
+            order_id=db_order.id, product_id=item.product_id, quantity=item.quantity
+        )
         db.add(order_product)
         adjust_stock(db, item.product_id, -item.quantity)
 
@@ -53,7 +60,10 @@ def create_order(db: Session, order_in: OrderCreate, user_id: int):
 
     return db_order
 
-def update_order(db: Session, order_id: int, order_update: OrderUpdate, user_id: int, is_admin: bool):
+
+def update_order(
+    db: Session, order_id: int, order_update: OrderUpdate, user_id: int, is_admin: bool
+):
     # Busca pedido para atualização
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -96,7 +106,10 @@ def update_order(db: Session, order_id: int, order_update: OrderUpdate, user_id:
 
             # Checa estoque se aumentando quantidade
             if diff > 0 and product.stock < diff:
-                raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.description}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient stock for product {product.description}",
+                )
 
             adjust_stock(db, order_prod.product_id, -diff)
             order_prod.quantity = p_data.quantity
@@ -104,17 +117,27 @@ def update_order(db: Session, order_id: int, order_update: OrderUpdate, user_id:
         else:
             product = product_map.get(p_data.product_id)
             if not product:
-                raise HTTPException(status_code=404, detail=f"Product {p_data.product_id} not found")
+                raise HTTPException(
+                    status_code=404, detail=f"Product {p_data.product_id} not found"
+                )
             if product.stock < p_data.quantity:
-                raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.description}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient stock for product {product.description}",
+                )
 
-            new_order_product = OrderProduct(order_id=order.id, product_id=p_data.product_id, quantity=p_data.quantity)
+            new_order_product = OrderProduct(
+                order_id=order.id,
+                product_id=p_data.product_id,
+                quantity=p_data.quantity,
+            )
             db.add(new_order_product)
             adjust_stock(db, p_data.product_id, -p_data.quantity)
 
     db.commit()
     db.refresh(order)
     return order
+
 
 def delete_order(db: Session, order_id: int, user_id: int, is_admin: bool):
     # Busca pedido para deletar

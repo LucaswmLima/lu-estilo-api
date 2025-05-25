@@ -1,13 +1,17 @@
 import pytest
 
+
 @pytest.fixture
 def admin_headers(token_admin):
     return {"Authorization": f"Bearer {token_admin}"}
 
+
 class TestAdminOrderBusinessRules:
 
     def test_delete_nonexistent_order_should_return_404(self, client, admin_headers):
-        response = client.delete("/orders/999999", headers=admin_headers)  # id que não existe
+        response = client.delete(
+            "/orders/999999", headers=admin_headers
+        )  # id que não existe
         assert response.status_code == 404  # pedido não encontrado
 
     def test_get_nonexistent_order_should_return_404(self, client, admin_headers):

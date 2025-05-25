@@ -12,4 +12,3 @@ class Client(Base):
     cpf = Column(String, unique=True, index=True, nullable=False)
     whatsapp = Column(String, index=True, nullable=True)
     orders = relationship("Order", back_populates="client")
-    

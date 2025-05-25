@@ -119,6 +119,7 @@ def create_second_client(client, token_admin):
     assert response.status_code == 200
     return response.json()
 
+
 @pytest.fixture()
 def create_test_order(create_test_client, create_test_product, create_test_user):
     db = TestingSessionLocal()
@@ -127,7 +128,7 @@ def create_test_order(create_test_client, create_test_product, create_test_user)
     order = Order(
         client_id=create_test_client.id,
         status="pending",
-        created_by=create_test_user.id  # aqui o created_by
+        created_by=create_test_user.id,  # aqui o created_by
     )
     db.add(order)
     db.commit()
@@ -150,6 +151,7 @@ def create_test_order(create_test_client, create_test_product, create_test_user)
     db.close()
 
     return order
+
 
 @pytest.fixture()
 def create_test_user():

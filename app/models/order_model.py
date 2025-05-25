@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
 
+
 class Order(Base):
     __tablename__ = "orders"
 
@@ -17,9 +18,10 @@ class Order(Base):
         "OrderProduct",
         back_populates="order",
         cascade="all, delete-orphan",
-        passive_deletes=True
+        passive_deletes=True,
     )
     user = relationship("User")
+
 
 class OrderProduct(Base):
     __tablename__ = "order_products"
