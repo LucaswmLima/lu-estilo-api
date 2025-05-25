@@ -1,69 +1,37 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import date
-
+from typing import List
 from app.schemas.order_schema import OrderCreate, OrderOut, OrderUpdate
-from app.services.order_service import (
-    create_order,
-    get_order,
-    get_orders,
-    update_order_status,
-    delete_order,
-)
-from app.dependencies import get_db, get_current_user
-from app.models.user_model import User
+from app.db.database import get_db
+from app.services.order_service import create_order, get_order, list_orders, update_order, delete_order
+from app.routes.auth_route import get_current_user, require_admin
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(prefix="/orders", tags=["orders"])
 
-
-@router.post("/", response_model=OrderOut)
-def create_new_order(
-    order_data: OrderCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return create_order(db, order_data)
-
+@router.post("/", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
+def create_new_order(order_in: OrderCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    order = create_order(db, order_in, current_user["id"])
+    return order
 
 @router.get("/", response_model=List[OrderOut])
-def list_orders(
-    db: Session = Depends(get_db),
-    id: Optional[int] = None,
-    client_id: Optional[int] = None,
-    section: Optional[str] = None,
-    status: Optional[str] = None,
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    current_user: User = Depends(get_current_user),
-):
-    return get_orders(db, id, client_id, section, status, start_date, end_date)
-
+def get_orders(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    is_admin = current_user.get("is_admin", False)
+    orders = list_orders(db, current_user["id"], is_admin)
+    return orders
 
 @router.get("/{order_id}", response_model=OrderOut)
-def get_order_by_id(
-    order_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return get_order(db, order_id)
-
+def get_order_by_id(order_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    is_admin = current_user.get("is_admin", False)
+    order = get_order(db, order_id, current_user["id"], is_admin)
+    return order
 
 @router.put("/{order_id}", response_model=OrderOut)
-def update_order(
-    order_id: int,
-    update_data: OrderUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return update_order_status(db, order_id, update_data.status)
-
+def update_order_by_id(order_id: int, order_update: OrderUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    is_admin = current_user.get("is_admin", False)
+    order = update_order(db, order_id, order_update, current_user["id"], is_admin)
+    return order
 
 @router.delete("/{order_id}")
-def delete_order_route(
-    order_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    delete_order(db, order_id)
-    return {"message": "Pedido deletado com sucesso"}
+def delete_order_by_id(order_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    is_admin = current_user.get("is_admin", False)
+    return delete_order(db, order_id, current_user["id"], is_admin)

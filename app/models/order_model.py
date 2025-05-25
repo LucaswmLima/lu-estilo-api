@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
 
-
 class Order(Base):
     __tablename__ = "orders"
 
@@ -11,10 +10,11 @@ class Order(Base):
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
     status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     client = relationship("Client", back_populates="orders")
     products = relationship("OrderProduct", back_populates="order")
-
+    user = relationship("User")
 
 class OrderProduct(Base):
     __tablename__ = "order_products"

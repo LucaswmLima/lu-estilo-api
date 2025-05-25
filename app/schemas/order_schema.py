@@ -27,6 +27,7 @@ class OrderUpdate(BaseModel):
 
 class OrderOut(OrderBase):
     id: int
+    created_by: int
     products: List[OrderProductOut]
 
     model_config = ConfigDict(from_attributes=True)
