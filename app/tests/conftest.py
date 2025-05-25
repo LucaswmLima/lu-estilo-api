@@ -9,6 +9,7 @@ from app.main import app
 from app.db.database import Base, get_db
 from app.models import User, Client
 from app.core.security import hash_password
+from app.models.order_model import Order, OrderProduct
 from app.models.product_model import Product
 from app.utils.jwt import create_access_token
 
@@ -117,3 +118,42 @@ def create_second_client(client, token_admin):
     response = client.post("/clients/", json=payload, headers=headers)
     assert response.status_code == 200
     return response.json()
+
+@pytest.fixture()
+def create_test_order(create_test_client, create_test_product, create_test_user):
+    db = TestingSessionLocal()
+
+    # Cria o pedido para o cliente e atribui o usuário que criou
+    order = Order(
+        client_id=create_test_client.id,
+        status="pending",
+        created_by=create_test_user.id  # aqui o created_by
+    )
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+
+    # Adiciona o produto ao pedido
+    order_product = OrderProduct(
+        order_id=order.id,
+        product_id=create_test_product.id,
+        quantity=2,
+    )
+    db.add(order_product)
+    db.commit()
+    db.refresh(order_product)
+
+    # Força o carregamento dos produtos para evitar lazy loading fora da sessão
+    _ = order.products
+
+    db.expunge(order)
+    db.close()
+
+    return order
+
+@pytest.fixture()
+def create_test_user():
+    db = TestingSessionLocal()
+    user = db.query(User).filter(User.email == "user@test.com").first()
+    db.close()
+    return user
