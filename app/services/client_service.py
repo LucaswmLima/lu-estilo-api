@@ -25,8 +25,11 @@ def get_client_by_id(db: Session, client_id: int) -> Client | None:
 
 # Cria um novo cliente
 def create_client(db: Session, client_data: ClientCreate) -> Client:
+
+    # Validaçoes
     validate_unique_email(db, client_data.email)
     validate_unique_cpf(db, client_data.cpf)
+
     client = Client(**client_data.model_dump())
     db.add(client)
     db.commit()
@@ -39,17 +42,20 @@ def update_client(db: Session, client_id: int, update_data: ClientUpdate) -> Cli
     if not client:
         return None
 
-    if update_data.email and update_data.email != client.email:
-        validate_unique_email(db, update_data.email)
-    if update_data.cpf and update_data.cpf != client.cpf:
-        validate_unique_cpf(db, update_data.cpf)
+    update_dict = update_data.model_dump(exclude_unset=True)
 
-    for field, value in update_data.model_dump(exclude_unset=True).items():
+    # Validações
+    validate_unique_email(db, update_dict.get("email"), client_id=client.id)
+    validate_unique_cpf(db, update_dict.get("cpf"), client_id=client.id)
+
+
+    for field, value in update_dict.items():
         setattr(client, field, value)
 
     db.commit()
     db.refresh(client)
     return client
+
 
 # Deleta um cliente por ID
 def delete_client(db: Session, client_id: int) -> bool:

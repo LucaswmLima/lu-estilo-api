@@ -18,3 +18,10 @@ def save_base64_image(image_base64: str) -> str:
         return filename
     except Exception as e:
         raise HTTPException(status_code=400, detail="Imagem inválida")
+    
+def delete_image(image_path):
+    if image_path:
+        try:
+            os.remove(os.path.join(IMAGE_FOLDER, image_path))
+        except FileNotFoundError:
+            pass

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.models import Product
 from app.schemas.product_schema import ProductCreate, ProductUpdate
-from app.utils.file_utils import save_base64_image
+from app.utils.file_utils import delete_image, save_base64_image
 from app.validations.product_validation import validate_unique_barcode, validate_expiration_date
 
 IMAGE_FOLDER = "app/static/images"
@@ -33,20 +33,16 @@ def create_product(db: Session, product: ProductCreate) -> Product:
 
 def update_product(db: Session, product_id: int, updates: ProductUpdate) -> Product:
     db_product = db.query(Product).filter(Product.id == product_id).first()
-    
     if not db_product:
         raise ValueError("Produto não encontrado")
 
     updates_dict = updates.model_dump(exclude_unset=True)
 
     # Validações
-    if "barcode" in updates_dict:
-        new_barcode = updates_dict["barcode"]
-        if new_barcode != db_product.barcode:
-            validate_unique_barcode(db, new_barcode)
-
-    if "expiration_date" in updates_dict:
-        validate_expiration_date(updates_dict["expiration_date"])
+    validate_unique_barcode(
+        db, updates_dict.get("barcode"), product_id=db_product.id
+    )
+    validate_expiration_date(updates_dict.get("expiration_date"))
 
     for field, value in updates_dict.items():
         if field == "image_base64" and value:
@@ -57,6 +53,7 @@ def update_product(db: Session, product_id: int, updates: ProductUpdate) -> Prod
     db.commit()
     db.refresh(db_product)
     return db_product
+
 
 def get_products(
     db: Session,
@@ -90,12 +87,8 @@ def delete_product(db: Session, product_id: int) -> bool:
     if not product:
         return False
 
-    # Apagar imagem do disco, se existir
-    if product.image_path:
-        try:
-            os.remove(os.path.join(IMAGE_FOLDER, product.image_path))
-        except FileNotFoundError:
-            pass
+    # Deleta a imagem se existir
+    delete_image(product.image_path)
 
     db.delete(product)
     db.commit()

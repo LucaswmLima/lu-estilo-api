@@ -46,7 +46,7 @@ def require_admin(user: User = Depends(get_current_user)):
 
 def create_user(db: Session, email: str, password: str) -> User:
    
-
+    # Validações
     validate_email_not_registered(db, email)
     hashed_pw = hash_password(password)
     new_user = User(email=email, hashed_password=hashed_pw)
