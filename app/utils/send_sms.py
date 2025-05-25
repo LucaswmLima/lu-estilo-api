@@ -1,9 +1,9 @@
-from twilio.rest import Client
 import os
+from twilio.rest import Client
 
 twilio_sid = os.getenv("TWILIO_ACCOUNT_SID")
 twilio_token = os.getenv("TWILIO_AUTH_TOKEN")
-twilio_whatsapp_from = 'whatsapp:+14155238886'  # número do remetente Twilio
+twilio_whatsapp_from = 'whatsapp:+14155238886'
 
 client = Client(twilio_sid, twilio_token)
 

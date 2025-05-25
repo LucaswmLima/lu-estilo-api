@@ -17,13 +17,37 @@ from app.services.auth_service import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserOut)
+@router.post(
+    "/register",
+    response_model=UserOut,
+    summary="Registro de novo usuário",
+    description=(
+        "Registra um novo usuário com email e senha.\n\n"
+        "Regras de negócio:\n"
+        "- O email deve ser único no sistema.\n"
+        "- A senha deve atender requisitos mínimos de segurança (validação no serviço).\n\n"
+        "Casos de uso:\n"
+        "- Novo usuário pode se cadastrar para acessar o sistema."
+    ),
+)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     new_user = create_user(db, user.email, user.password)
     return new_user
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Autenticação de usuário",
+    description=(
+        "Autentica o usuário usando email e senha.\n\n"
+        "Regras de negócio:\n"
+        "- Valida as credenciais do usuário.\n"
+        "- Emite tokens JWT de acesso e refresh para uso em autenticação contínua.\n\n"
+        "Casos de uso:\n"
+        "- Usuário realiza login para obter tokens e acessar recursos protegidos."
+    ),
+)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -39,7 +63,19 @@ def login(
     }
 
 
-@router.delete("/delete", status_code=204)
+@router.delete(
+    "/delete",
+    status_code=204,
+    summary="Excluir usuário autenticado",
+    description=(
+        "Exclui o usuário atualmente autenticado do sistema.\n\n"
+        "Regras de negócio:\n"
+        "- Apenas o próprio usuário pode excluir sua conta.\n"
+        "- A exclusão é definitiva.\n\n"
+        "Casos de uso:\n"
+        "- Usuário deseja remover sua conta permanentemente."
+    ),
+)
 def delete_current_user(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -48,7 +84,19 @@ def delete_current_user(
     return None
 
 
-@router.post("/refresh", response_model=Token)
+@router.post(
+    "/refresh",
+    response_model=Token,
+    summary="Refresh de token JWT",
+    description=(
+        "Renova tokens JWT usando um refresh token válido.\n\n"
+        "Regras de negócio:\n"
+        "- O refresh token deve ser válido e não expirado.\n"
+        "- Emite novos tokens de acesso e refresh.\n\n"
+        "Casos de uso:\n"
+        "- Usuário mantém sessão ativa sem precisar fazer login novamente."
+    ),
+)
 def refresh_token(refresh_token: str = Body(...)):
     access_token, new_refresh_token = refresh_tokens(refresh_token)
     if not access_token or not new_refresh_token:

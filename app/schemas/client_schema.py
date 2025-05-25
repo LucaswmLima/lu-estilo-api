@@ -9,6 +9,7 @@ class ClientBase(BaseModel):
     name: str
     email: EmailStr
     cpf: CPFStr  # type: ignore
+    whatsapp: Optional[str] = None
 
 
 class ClientCreate(ClientBase):
@@ -19,6 +20,7 @@ class ClientUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     cpf: Optional[CPFStr] = None  # type: ignore
+    whatsapp: Optional[str] = None
 
 
 class ClientOut(ClientBase):

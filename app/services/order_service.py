@@ -1,9 +1,11 @@
+from app.models.client_model import Client
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from typing import List
 from app.models.order_model import Order, OrderProduct
 from app.schemas.order_schema import OrderCreate, OrderUpdate
 from app.models.product_model import Product
+from app.utils.send_sms import send_whatsapp_message
 from app.validations.order_validation import adjust_stock, validate_stock
 
 def get_order(db: Session, order_id: int, user_id: int, is_admin: bool):
@@ -42,6 +44,13 @@ def create_order(db: Session, order_in: OrderCreate, user_id: int):
 
     db.commit()
     db.refresh(db_order)
+
+    # Busca o cliente para pegar o telefone do WhatsApp
+    client = db.query(Client).filter(Client.id == order_in.client_id).first()
+    if client and client.whatsapp:
+        message = f"Olá {client.name}, seu pedido #{db_order.id} foi criado com sucesso! Obrigado pela preferência."
+        send_whatsapp_message(client.whatsapp, message)
+
     return db_order
 
 def update_order(db: Session, order_id: int, order_update: OrderUpdate, user_id: int, is_admin: bool):

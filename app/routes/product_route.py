@@ -20,7 +20,22 @@ IMAGE_FOLDER = "app/static/images"
 router = APIRouter(prefix="/products", tags=["products"])
 
 
-@router.get("/", response_model=List[ProductOut])
+@router.get(
+    "/",
+    response_model=List[ProductOut],
+    summary="Listar produtos",
+    description=(
+        "Retorna uma lista de produtos com filtros opcionais.\n\n"
+        "Regras de negócio:\n"
+        "- Pode ser usado por qualquer usuário autenticado.\n"
+        "- Filtros disponíveis: seção (`section`), preço mínimo e máximo (`min_price`, `max_price`), disponibilidade (`available`).\n"
+        "- Paginação controlada pelos parâmetros `skip` e `limit`.\n\n"
+        "Casos de uso:\n"
+        "- Navegar por todos os produtos.\n"
+        "- Buscar produtos dentro de uma faixa de preço específica.\n"
+        "- Listar apenas produtos disponíveis para venda."
+    ),
+)
 def get_products(
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
@@ -36,7 +51,20 @@ def get_products(
     )
 
 
-@router.post("/", response_model=ProductOut)
+@router.post(
+    "/",
+    response_model=ProductOut,
+    summary="Criar produto",
+    description=(
+        "Cria um novo produto no sistema.\n\n"
+        "Regras de negócio:\n"
+        "- Somente usuários com permissão de administrador podem acessar esta rota.\n"
+        "- O produto deve conter nome, descrição, preço, seção e disponibilidade.\n\n"
+        "Casos de uso:\n"
+        "- Adicionar novos produtos ao catálogo.\n"
+        "- Atualizar o estoque com novos itens disponíveis."
+    ),
+)
 def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
@@ -45,7 +73,20 @@ def create_product(
     return service_create_product(db, product)
 
 
-@router.get("/{product_id}", response_model=ProductOut)
+@router.get(
+    "/{product_id}",
+    response_model=ProductOut,
+    summary="Obter produto por ID",
+    description=(
+        "Retorna os detalhes de um produto específico.\n\n"
+        "Regras de negócio:\n"
+        "- Qualquer usuário autenticado pode acessar.\n"
+        "- Retorna erro 404 caso o produto não seja encontrado.\n\n"
+        "Casos de uso:\n"
+        "- Visualizar as informações completas de um produto antes de comprar.\n"
+        "- Verificar disponibilidade, descrição e preço de um produto."
+    ),
+)
 def get_product(
     product_id: int,
     db: Session = Depends(get_db),
@@ -57,7 +98,20 @@ def get_product(
     return product
 
 
-@router.put("/{product_id}", response_model=ProductOut)
+@router.put(
+    "/{product_id}",
+    response_model=ProductOut,
+    summary="Atualizar produto",
+    description=(
+        "Atualiza os dados de um produto existente.\n\n"
+        "Regras de negócio:\n"
+        "- Apenas administradores podem acessar esta rota.\n"
+        "- Retorna erro 404 se o produto não existir.\n\n"
+        "Casos de uso:\n"
+        "- Corrigir informações incorretas sobre um produto.\n"
+        "- Atualizar preço ou disponibilidade de um item do catálogo."
+    ),
+)
 def update_product(
     product_id: int,
     update_data: ProductUpdate,
@@ -70,7 +124,19 @@ def update_product(
     return product
 
 
-@router.delete("/{product_id}")
+@router.delete(
+    "/{product_id}",
+    summary="Deletar produto",
+    description=(
+        "Remove um produto do sistema.\n\n"
+        "Regras de negócio:\n"
+        "- Apenas administradores podem acessar esta rota.\n"
+        "- Retorna erro 404 se o produto não existir.\n\n"
+        "Casos de uso:\n"
+        "- Remover produtos descontinuados do catálogo.\n"
+        "- Apagar itens com erro de cadastro."
+    ),
+)
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db),
@@ -82,8 +148,19 @@ def delete_product(
     return {"detail": "Product deleted successfully"}
 
 
-# Rota para servir imagens estáticas dos produtos
-@router.get("/images/{image_filename}")
+@router.get(
+    "/images/{image_filename}",
+    summary="Servir imagem do produto",
+    description=(
+        "Serve imagens estáticas dos produtos com base no nome do arquivo.\n\n"
+        "Regras de negócio:\n"
+        "- Qualquer usuário pode acessar esta rota.\n"
+        "- A imagem deve estar salva na pasta `app/static/images`.\n"
+        "- Retorna erro 404 se a imagem não existir.\n\n"
+        "Casos de uso:\n"
+        "- Carregar imagens dos produtos para exibição no frontend."
+    ),
+)
 def serve_product_image(image_filename: str):
     file_path = os.path.join(IMAGE_FOLDER, image_filename)
     if not os.path.exists(file_path):
