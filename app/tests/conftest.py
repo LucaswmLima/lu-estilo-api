@@ -96,6 +96,7 @@ def create_test_product():
         barcode=str(uuid.uuid4().int)[:13],
         section="Roupas",
         stock=10,
+        image_path="tests/assets/test_image.gif"
     )
     db.add(product)
     db.commit()

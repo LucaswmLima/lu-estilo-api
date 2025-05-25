@@ -6,6 +6,7 @@ PRODUCT_SAMPLE = {
     "barcode": "1234567890123",
     "section": "Roupas",
     "stock": 10,
+    "image_base64": "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
 }
 
 
@@ -107,4 +108,4 @@ class TestAdminTokenAccess:
     def test_delete_product_admin_allowed(self, client, create_test_product):
         response = client.delete(f"/products/{create_test_product.id}", headers=self.headers)
         assert response.status_code == 200
-        assert response.json()["detail"] == "Produto deletado com sucesso"
+        assert response.json()["detail"] == "Product deleted successfully"

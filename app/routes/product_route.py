@@ -48,7 +48,7 @@ def get_product(
 ):
     product = get_product_by_id(db, product_id)
     if not product:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
+        raise HTTPException(status_code=404, detail="Product not found")
     return product
 
 @router.put("/{product_id}", response_model=ProductOut)
@@ -60,8 +60,9 @@ def update_product(
 ):
     product = service_update_product(db, product_id, update_data)
     if not product:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
+        raise HTTPException(status_code=404, detail="Product not found")
     return product
+
 
 @router.delete("/{product_id}")
 def delete_product(
@@ -71,13 +72,13 @@ def delete_product(
 ):
     success = service_delete_product(db, product_id)
     if not success:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
-    return {"detail": "Produto deletado com sucesso"}
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"detail": "Product deleted successfully"}
 
 # Rota para servir imagens estáticas dos produtos
 @router.get("/images/{image_filename}")
 def serve_product_image(image_filename: str):
     file_path = os.path.join(IMAGE_FOLDER, image_filename)
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Imagem não encontrada")
+        raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(file_path)

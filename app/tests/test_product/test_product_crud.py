@@ -1,14 +1,12 @@
 import pytest
 
+VALID_IMAGE = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+
 INVALID_PRODUCTS = [
-    # descrição vazia
-    {"description": "", "price": 10.0, "barcode": "0000000000001", "section": "Roupas", "stock": 5},
-    # preço negativo
-    {"description": "Teste", "price": -5.0, "barcode": "0000000000002", "section": "Roupas", "stock": 5},
-    # barcode vazio
-    {"description": "Teste", "price": 10.0, "barcode": "", "section": "Roupas", "stock": 5},
-    # estoque negativo
-    {"description": "Teste", "price": 10.0, "barcode": "0000000000003", "section": "Roupas", "stock": -1},
+    {"description": "", "price": 10.0, "barcode": "0000000000001", "section": "Roupas", "stock": 5, "image_base64": VALID_IMAGE},
+    {"description": "Teste", "price": -5.0, "barcode": "0000000000002", "section": "Roupas", "stock": 5, "image_base64": VALID_IMAGE},
+    {"description": "Teste", "price": 10.0, "barcode": "", "section": "Roupas", "stock": 5, "image_base64": VALID_IMAGE},
+    {"description": "Teste", "price": 10.0, "barcode": "0000000000003", "section": "Roupas", "stock": -1, "image_base64": VALID_IMAGE},
 ]
 
 class TestAdminCrudValidations:
@@ -22,47 +20,57 @@ class TestAdminCrudValidations:
             assert response.status_code == 422
 
     def test_create_product_duplicate_barcode(self, client, create_test_product):
-        # tentar criar um produto com barcode já existente (do create_test_product)
         product_data = {
             "description": "Outro Produto",
             "price": 20.0,
             "barcode": create_test_product.barcode,
             "section": "Eletrônicos",
             "stock": 10,
+            "image_base64": "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
         }
         response = client.post("/products/", json=product_data, headers=self.headers)
         assert response.status_code == 400
         assert "barcode" in response.json()["detail"].lower()
 
     def test_update_product_with_invalid_data(self, client, create_test_product):
-        for invalid_data in [
+        test_cases = [
             {"price": -10},
             {"description": ""},
             {"stock": -5},
             {"barcode": ""}
-        ]:
-            response = client.put(f"/products/{create_test_product.id}", json=invalid_data, headers=self.headers)
-            assert response.status_code == 422
+        ]
+        for invalid_data in test_cases:
+            response = client.put(
+                f"/products/{create_test_product.id}",
+                json=invalid_data,
+                headers=self.headers
+            )
+            # Debug em caso de erro
+            print("\n[TEST CASE] Enviando:", invalid_data)
+            print("Status:", response.status_code)
+            print("Resposta:", response.json())
+            assert response.status_code == 422, f"Esperado 422, mas recebeu {response.status_code} para input {invalid_data}"
 
     def test_update_product_duplicate_barcode(self, client, create_test_product):
-        # cria um outro produto com barcode diferente
         product_data = {
             "description": "Produto Extra",
             "price": 15.0,
             "barcode": "9999999999999",
             "section": "Roupas",
             "stock": 8,
+            "image_base64": "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
         }
         res = client.post("/products/", json=product_data, headers=self.headers)
         assert res.status_code == 200
         new_product_id = res.json()["id"]
 
-        # tenta atualizar o novo produto com barcode do create_test_product (duplicado)
         response = client.put(
             f"/products/{new_product_id}",
             json={"barcode": create_test_product.barcode},
             headers=self.headers
         )
+        print("\n[UPDATE DUPLICATE] Status:", response.status_code)
+        print("Resposta:", response.json())
         assert response.status_code == 400
         assert "barcode" in response.json()["detail"].lower()
 
