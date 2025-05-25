@@ -19,6 +19,7 @@ IMAGE_FOLDER = "app/static/images"
 
 router = APIRouter(prefix="/products", tags=["products"])
 
+
 @router.get("/", response_model=List[ProductOut])
 def get_products(
     db: Session = Depends(get_db),
@@ -30,7 +31,10 @@ def get_products(
     max_price: Optional[float] = Query(None),
     available: Optional[bool] = Query(None),
 ):
-    return service_get_products(db, skip, limit, section, min_price, max_price, available)
+    return service_get_products(
+        db, skip, limit, section, min_price, max_price, available
+    )
+
 
 @router.post("/", response_model=ProductOut)
 def create_product(
@@ -39,6 +43,7 @@ def create_product(
     user=Depends(require_admin),
 ):
     return service_create_product(db, product)
+
 
 @router.get("/{product_id}", response_model=ProductOut)
 def get_product(
@@ -50,6 +55,7 @@ def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
 
 @router.put("/{product_id}", response_model=ProductOut)
 def update_product(
@@ -74,6 +80,7 @@ def delete_product(
     if not success:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"detail": "Product deleted successfully"}
+
 
 # Rota para servir imagens estáticas dos produtos
 @router.get("/images/{image_filename}")

@@ -4,6 +4,7 @@ from app.models import Client
 from app.schemas.client_schema import ClientCreate, ClientUpdate
 from app.validations.client_validation import validate_unique_email, validate_unique_cpf
 
+
 # Pesquisa todos os clientes com filtro e paginação
 def get_clients(
     db: Session,
@@ -19,9 +20,11 @@ def get_clients(
         query = query.filter(Client.email.contains(email))
     return query.offset(skip).limit(limit).all()
 
+
 # Procura um cliente por ID
 def get_client_by_id(db: Session, client_id: int) -> Client | None:
     return db.get(Client, client_id)
+
 
 # Cria um novo cliente
 def create_client(db: Session, client_data: ClientCreate) -> Client:
@@ -36,6 +39,7 @@ def create_client(db: Session, client_data: ClientCreate) -> Client:
     db.refresh(client)
     return client
 
+
 # Atualiza um cliente por ID
 def update_client(db: Session, client_id: int, update_data: ClientUpdate) -> Client:
     client = db.get(Client, client_id)
@@ -47,7 +51,6 @@ def update_client(db: Session, client_id: int, update_data: ClientUpdate) -> Cli
     # Validações
     validate_unique_email(db, update_dict.get("email"), client_id=client.id)
     validate_unique_cpf(db, update_dict.get("cpf"), client_id=client.id)
-
 
     for field, value in update_dict.items():
         setattr(client, field, value)

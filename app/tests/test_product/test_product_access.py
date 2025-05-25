@@ -6,7 +6,7 @@ PRODUCT_SAMPLE = {
     "barcode": "1234567890123",
     "section": "Roupas",
     "stock": 10,
-    "image_base64": "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+    "image_base64": "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",
 }
 
 
@@ -28,8 +28,7 @@ class TestNoToken:
 
     def test_update_product_user_forbidden(self, client, create_test_product):
         response = client.put(
-            f"/products/{create_test_product.id}",
-            json={"price": 59.99}
+            f"/products/{create_test_product.id}", json={"price": 59.99}
         )
         assert response.status_code == 401
 
@@ -51,7 +50,9 @@ class TestUserToken:
         assert response.status_code == 200
 
     def test_get_product_user_allowed(self, client, create_test_product):
-        response = client.get(f"/products/{create_test_product.id}", headers=self.headers)
+        response = client.get(
+            f"/products/{create_test_product.id}", headers=self.headers
+        )
         assert response.status_code == 200
 
     # Área permitida a admin
@@ -63,14 +64,16 @@ class TestUserToken:
         response = client.put(
             f"/products/{create_test_product.id}",
             json={"price": 59.99},
-            headers=self.headers
+            headers=self.headers,
         )
         print("Status Code:", response.status_code)
         print("Response JSON:", response.json())
         assert response.status_code == 403
 
     def test_delete_product_user_forbidden(self, client, create_test_product):
-        response = client.delete(f"/products/{create_test_product.id}", headers=self.headers)
+        response = client.delete(
+            f"/products/{create_test_product.id}", headers=self.headers
+        )
         assert response.status_code == 403
 
 
@@ -87,7 +90,9 @@ class TestAdminTokenAccess:
         assert response.status_code == 200
 
     def test_get_product_admin_allowed(self, client, create_test_product):
-        response = client.get(f"/products/{create_test_product.id}", headers=self.headers)
+        response = client.get(
+            f"/products/{create_test_product.id}", headers=self.headers
+        )
         assert response.status_code == 200
 
     # Área permitida a admin
@@ -100,12 +105,14 @@ class TestAdminTokenAccess:
         response = client.put(
             f"/products/{create_test_product.id}",
             json={"price": 59.99},
-            headers=self.headers
+            headers=self.headers,
         )
         assert response.status_code == 200
         assert response.json()["price"] == 59.99
 
     def test_delete_product_admin_allowed(self, client, create_test_product):
-        response = client.delete(f"/products/{create_test_product.id}", headers=self.headers)
+        response = client.delete(
+            f"/products/{create_test_product.id}", headers=self.headers
+        )
         assert response.status_code == 200
         assert response.json()["detail"] == "Product deleted successfully"

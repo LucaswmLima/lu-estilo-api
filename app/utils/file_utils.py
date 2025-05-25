@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 IMAGE_FOLDER = "app/static/images"
 
+
 def save_base64_image(image_base64: str) -> str:
     try:
         os.makedirs(IMAGE_FOLDER, exist_ok=True)
@@ -18,7 +19,8 @@ def save_base64_image(image_base64: str) -> str:
         return filename
     except Exception as e:
         raise HTTPException(status_code=400, detail="Imagem inválida")
-    
+
+
 def delete_image(image_path):
     if image_path:
         try:

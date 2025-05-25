@@ -5,9 +5,13 @@ from typing import List, Optional
 from app.models import Product
 from app.schemas.product_schema import ProductCreate, ProductUpdate
 from app.utils.file_utils import delete_image, save_base64_image
-from app.validations.product_validation import validate_unique_barcode, validate_expiration_date
+from app.validations.product_validation import (
+    validate_unique_barcode,
+    validate_expiration_date,
+)
 
 IMAGE_FOLDER = "app/static/images"
+
 
 def create_product(db: Session, product: ProductCreate) -> Product:
     # Validações
@@ -23,13 +27,14 @@ def create_product(db: Session, product: ProductCreate) -> Product:
         section=product.section,
         stock=product.stock,
         expiration_date=product.expiration_date,
-        image_path=image_path
+        image_path=image_path,
     )
 
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
     return db_product
+
 
 def update_product(db: Session, product_id: int, updates: ProductUpdate) -> Product:
     db_product = db.query(Product).filter(Product.id == product_id).first()
@@ -39,9 +44,7 @@ def update_product(db: Session, product_id: int, updates: ProductUpdate) -> Prod
     updates_dict = updates.model_dump(exclude_unset=True)
 
     # Validações
-    validate_unique_barcode(
-        db, updates_dict.get("barcode"), product_id=db_product.id
-    )
+    validate_unique_barcode(db, updates_dict.get("barcode"), product_id=db_product.id)
     validate_expiration_date(updates_dict.get("expiration_date"))
 
     for field, value in updates_dict.items():
@@ -79,8 +82,10 @@ def get_products(
 
     return query.offset(skip).limit(limit).all()
 
+
 def get_product_by_id(db: Session, product_id: int) -> Optional[Product]:
     return db.get(Product, product_id)
+
 
 def delete_product(db: Session, product_id: int) -> bool:
     product = db.get(Product, product_id)

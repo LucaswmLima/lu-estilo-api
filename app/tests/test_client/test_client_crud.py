@@ -7,6 +7,7 @@ CLIENT_SAMPLE = {
     "cpf": "12345678900",
 }
 
+
 class TestClientBusinessRules:
     @pytest.fixture(autouse=True)
     def setup_headers(self, token_admin):
@@ -56,7 +57,9 @@ class TestClientBusinessRules:
         assert response.status_code == 200
         assert response.json()["name"] == "Updated Name"
 
-    def test_update_client_duplicate_email(self, client, create_test_client, create_second_client):
+    def test_update_client_duplicate_email(
+        self, client, create_test_client, create_second_client
+    ):
         response = client.put(
             f"/clients/{create_test_client.id}",
             json={"email": create_second_client["email"]},
@@ -64,7 +67,9 @@ class TestClientBusinessRules:
         )
         assert response.status_code == 400
 
-    def test_update_client_duplicate_cpf(self, client, create_test_client, create_second_client):
+    def test_update_client_duplicate_cpf(
+        self, client, create_test_client, create_second_client
+    ):
         response = client.put(
             f"/clients/{create_test_client.id}",
             json={"cpf": create_second_client["cpf"]},
@@ -83,9 +88,13 @@ class TestClientBusinessRules:
         assert isinstance(response.json(), list)
 
     def test_delete_client(self, client, create_test_client):
-        response = client.delete(f"/clients/{create_test_client.id}", headers=self.headers)
+        response = client.delete(
+            f"/clients/{create_test_client.id}", headers=self.headers
+        )
         assert response.status_code == 200
 
         # Confirma que foi deletado
-        follow_up = client.get(f"/clients/{create_test_client.id}", headers=self.headers)
+        follow_up = client.get(
+            f"/clients/{create_test_client.id}", headers=self.headers
+        )
         assert follow_up.status_code == 404
