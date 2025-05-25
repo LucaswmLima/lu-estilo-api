@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import os
+
 from app.db.database import get_db
 from app.schemas.product_schema import ProductCreate, ProductUpdate, ProductOut
 from app.services.product_service import (
@@ -8,9 +11,11 @@ from app.services.product_service import (
     get_product_by_id,
     create_product as service_create_product,
     update_product as service_update_product,
-    delete_product as service_delete_product
+    delete_product as service_delete_product,
 )
 from app.routes.auth_route import get_current_user, require_admin
+
+IMAGE_FOLDER = "app/static/images"
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -68,3 +73,11 @@ def delete_product(
     if not success:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return {"detail": "Produto deletado com sucesso"}
+
+# Rota para servir imagens estáticas dos produtos
+@router.get("/images/{image_filename}")
+def serve_product_image(image_filename: str):
+    file_path = os.path.join(IMAGE_FOLDER, image_filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Imagem não encontrada")
+    return FileResponse(file_path)

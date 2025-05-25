@@ -45,3 +45,6 @@ alembic.ini
 # MacOS / Linux / Windows
 .DS_Store
 Thumbs.db
+
+# Images
+app/static/images

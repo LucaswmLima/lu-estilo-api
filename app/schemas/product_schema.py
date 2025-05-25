@@ -1,5 +1,6 @@
+# schemas/product_schema.py
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
+from typing import Optional
 from datetime import date
 
 class ProductBase(BaseModel):
@@ -11,7 +12,7 @@ class ProductBase(BaseModel):
     expiration_date: Optional[date] = None
 
 class ProductCreate(ProductBase):
-    images: Optional[List[str]] = Field(default_factory=list, description="Lista de caminhos das imagens")
+    image_base64: str = Field(..., description="Imagem em base64")
 
 class ProductUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=1)
@@ -20,10 +21,10 @@ class ProductUpdate(BaseModel):
     section: Optional[str] = Field(None, min_length=1)
     stock: Optional[int] = Field(None, ge=0)
     expiration_date: Optional[date] = None
-    images: Optional[List[str]] = Field(default=None, description="Lista de caminhos das imagens")
+    image_base64: Optional[str] = Field(None, description="Imagem nova em base64 (opcional)")
 
 class ProductOut(ProductBase):
     id: int
-    images: List[str] = Field(default_factory=list)
+    image_path: str
 
     model_config = ConfigDict(from_attributes=True)
