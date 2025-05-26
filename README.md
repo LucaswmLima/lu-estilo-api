@@ -23,7 +23,7 @@ POSTGRES_PASSWORD=postgres
 POSTGRES_DB=lu_estilo
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
-
+SENTRY_DSN=<seu_sentry_dns>
 JWT_SECRET=seu_segredo_aqui
 TWILIO_ACCOUNT_SID=seu_sid_twilio
 TWILIO_AUTH_TOKEN=seu_token_twilio
