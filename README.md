@@ -160,7 +160,7 @@ Esse comando irá alternar o campo `is_admin`: se o usuário for admin, vira com
 - As rotas que precisam de autenticação exigem o token JWT no header `Authorization: Bearer <token>`.
 - Usuários comuns podem ver e modificar seus próprios clientes e pedidos.
 - Somente administradores podem criar/deletar produtos e deletar clientes e pedidos.
-- O banco de dados roda dentro do container Postgres, mapeado para a porta 5432 no host.
-- Use PgAdmin ou outro cliente para acessar o banco via `localhost` na porta `5433` com usuário e senha do `.env`.
+- O banco de dados roda dentro do container Postgres na porta 5432, que está mapeada para a porta 5433 no host para evitar duplicidades.  
+- Use PgAdmin ou outro cliente para acessar o banco via localhost na porta 5433 com usuário e senha definidos no .env.
 
 ---
