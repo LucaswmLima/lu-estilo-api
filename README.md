@@ -18,16 +18,30 @@ cd lu-estilo-api
 Copie o arquivo `.env.example` para `.env` e preencha com suas credenciais:
 
 ```env
+# Banco de dados
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=sua_senha_aqui
 POSTGRES_DB=lu_estilo
-POSTGRES_HOST=db
 POSTGRES_PORT=5432
-SENTRY_DSN=<seu_sentry_dns>
-JWT_SECRET=seu_segredo_aqui
-TWILIO_ACCOUNT_SID=seu_sid_twilio
-TWILIO_AUTH_TOKEN=seu_token_twilio
-TWILIO_WHATSAPP_SANDBOX_NUMBER=+14155238886
+
+# Host do banco de dados
+# - Use 'localhost' se estiver rodando a aplicação localmente, sem Docker
+# - Use 'db' se estiver rodando com Docker Compose (nome do serviço do banco)
+POSTGRES_HOST=db
+
+# Segurança e app
+SECRET_KEY=sua_chave_secreta_aqui
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# Integrações externas (exemplos)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+SENTRY_DSN=your_sentry_dsn
+
+PORT=8000
+BASE_URL=http://localhost:8000
 ```
 
 ### 3. Suba os containers com Docker Compose
