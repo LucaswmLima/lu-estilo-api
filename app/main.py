@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from app.db.database import engine, Base
 from app.routes import auth_route, order_route, client_route, product_route
+from app.utils.sentry import init_sentry
+
+init_sentry()
 
 Base.metadata.create_all(bind=engine)
 
