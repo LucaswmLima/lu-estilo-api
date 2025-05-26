@@ -1,9 +1,11 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
 
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    is_admin: Optional[int] = 0
 
 
 class UserOut(BaseModel):

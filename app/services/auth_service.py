@@ -44,12 +44,12 @@ def require_admin(user: User = Depends(get_current_user)):
     return user
 
 
-def create_user(db: Session, email: str, password: str) -> User:
+def create_user(db: Session, email: str, password: str, is_admin: int) -> User:
 
     # Validações
     validate_email_not_registered(db, email)
     hashed_pw = hash_password(password)
-    new_user = User(email=email, hashed_password=hashed_pw)
+    new_user = User(email=email, hashed_password=hashed_pw, is_admin=is_admin)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
