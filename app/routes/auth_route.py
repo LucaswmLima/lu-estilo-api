@@ -31,7 +31,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     ),
 )
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    new_user = create_user(db, user.email, user.password)
+    new_user = create_user(db, user.email, user.password, user.is_admin)
     return new_user
 
 
